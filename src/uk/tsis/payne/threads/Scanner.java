@@ -108,10 +108,12 @@ public class Scanner implements Runnable {
                         writer.flush();
                         writer.close();
                         Thread.sleep(500);
+                        p--;
                         break;
                     } catch (JSchException e) {
                         if (e.getMessage().contains("refused") || e.getMessage().contains("foreign host") ||
                             e.getMessage().contains("reset") || e.getMessage().contains("reset by peer")){
+                            p--;
                             continue;
                         }
                     }catch (IOException e){
